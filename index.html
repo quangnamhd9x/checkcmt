@@ -1,49 +1,52 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Đọc mã QR từ Camera</title>
+    <title>QR Code Scanner</title>
 </head>
 <body>
-    <video id="qr-video" autoplay playsinline style="width: 100%; height: auto;"></video>
-    <canvas id="qr-canvas" style="display: none;"></canvas>
-    <div id="qr-result">Kết quả sẽ được hiển thị ở đây.</div>
-    
-    <script src="https://rawgit.com/cozmo/jsQR/master/dist/jsQR.js"></script>
+    <h1>QR Code Scanner</h1>
+    <video id="qr-video" width="400" height="300" autoplay></video>
+    <canvas id="qr-canvas" width="400" height="300"></canvas>
+    <div id="qr-result">Kết quả: <span></span></div>
+
+    <script src="https://cdn.rawgit.com/cozmo/jsQR/master/dist/jsQR.js"></script>
     <script>
-        // Bắt đầu camera
-        async function startCamera() {
-            const constraints = {
-                video: { facingMode: 'environment' }
-            };
-            const stream = await navigator.mediaDevices.getUserMedia(constraints);
-            const video = document.getElementById('qr-video');
-            video.srcObject = stream;
+        const videoElement = document.getElementById('qr-video');
+        const canvasElement = document.getElementById('qr-canvas');
+        const canvas = canvasElement.getContext('2d');
+        const qrResult = document.getElementById('qr-result');
+
+        function startCamera() {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                .then(function (stream) {
+                    videoElement.srcObject = stream;
+                })
+                .catch(function (error) {
+                    console.error('Lỗi truy cập camera: ', error);
+                });
         }
 
-        // Đọc mã QR từ hình ảnh
-        async function decodeQRCode() {
-            const video = document.getElementById('qr-video');
-            const canvas = document.getElementById('qr-canvas');
-            const context = canvas.getContext('2d');
+        videoElement.onloadedmetadata = function (e) {
+            canvasElement.style.display = 'none';
+            startCamera();
+        };
 
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        function scanQRCode() {
+            canvasElement.width = videoElement.videoWidth;
+            canvasElement.height = videoElement.videoHeight;
+            canvas.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+            const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
             const code = jsQR(imageData.data, imageData.width, imageData.height);
 
             if (code) {
-                document.getElementById('qr-result').textContent = 'QR Code: ' + code.data;
+                qrResult.textContent = 'Kết quả: ' + code.data;
             } else {
-                requestAnimationFrame(decodeQRCode);
+                requestAnimationFrame(scanQRCode);
             }
         }
 
-        // Bắt đầu camera và quét mã QR
-        startCamera().then(() => {
-            requestAnimationFrame(decodeQRCode);
-        });
+        startCamera();
+        scanQRCode();
     </script>
 </body>
 </html>
