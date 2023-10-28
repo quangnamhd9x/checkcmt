@@ -2,28 +2,46 @@
 <html>
 <head>
     <title>Đọc mã QR từ Camera</title>
-</head>
-<body>
-    <video id="qr-video" autoplay playsinline style="width: 100%; height: auto;"></video>
-    <canvas id="qr-canvas" style="display: none;"></canvas>
-    <div id="qr-result">Kết quả sẽ được hiển thị ở đây.</div>
-    
-    <script src="https://rawgit.com/cozmo/jsQR/master/dist/jsQR.js"></script>
-    <script>
-        // Bắt đầu camera
-        async function startCamera() {
-            const constraints = {
-                video: { facingMode: 'environment' }
-            };
-            const stream = await navigator.mediaDevices.getUserMedia(constraints);
-            const video = document.getElementById('qr-video');
-            video.srcObject = stream;
+    <style>
+        video {
+            width: 100%;
+            max-width: 640px;
+            display: block;
+            margin: 0 auto;
         }
 
-        // Đọc mã QR từ hình ảnh
+        #qr-result {
+            text-align: center;
+            font-size: 18px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <video id="qr-video" autoplay playsinline></video>
+    <div id="qr-result">Kết quả sẽ được hiển thị ở đây.</div>
+    
+    <script>
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const video = document.getElementById('qr-video');
+                video.srcObject = stream;
+
+                video.onloadedmetadata = function(e) {
+                    video.play();
+                    decodeQRCode();
+                };
+            } catch (error) {
+                console.error('Lỗi khi truy cập camera: ', error);
+            }
+        }
+
         async function decodeQRCode() {
             const video = document.getElementById('qr-video');
-            const canvas = document.getElementById('qr-canvas');
+            const qrResult = document.getElementById('qr-result');
+            
+            const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
 
             canvas.width = video.videoWidth;
@@ -31,19 +49,26 @@
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
             const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-            const code = jsQR(imageData.data, imageData.width, imageData.height);
+            
+            const code = await scanQRCode(imageData);
 
             if (code) {
-                document.getElementById('qr-result').textContent = 'QR Code: ' + code.data;
+                qrResult.textContent = 'QR Code: ' + code;
             } else {
                 requestAnimationFrame(decodeQRCode);
             }
         }
 
-        // Bắt đầu camera và quét mã QR
-        startCamera().then(() => {
-            requestAnimationFrame(decodeQRCode);
-        });
+        async function scanQRCode(imageData) {
+            const codeReader = new ZXing.BrowserQRCodeReader();
+            const codeResult = await codeReader.decodeFromImage(imageData);
+
+            return codeResult ? codeResult.text : null;
+        }
+
+        startCamera();
     </script>
+
+    <script src="https://cdn.rawgit.com/zxing-js/instascan/2.0.0/instascan.min.js"></script>
 </body>
 </html>
