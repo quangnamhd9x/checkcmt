@@ -1,55 +1,56 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>QR Code Scanner</title>
-    <style>
-        body {
-            text-align: center;
-        }
+  <meta charset="UTF-8">
+  <title>QR Code Scanner</title>
+  <style>
+    body {
+      text-align: center;
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
 
-        h1 {
-            font-size: 24px;
-        }
+    #qr-reader {
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
+    }
 
-        #qr-video {
-            width: 400px;
-            height: 300px;
-            margin: 0 auto;
-            display: block;
-        }
-
-        #qr-result {
-            font-size: 18px;
-        }
-    </style>
+    #result {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+  </style>
 </head>
 <body>
-    <h1>QR Code Scanner</h1>
-    <video id="qr-video"></video>
-    <div id="qr-result">Kết quả: <span></span></div>
+  <h1>QR Code Scanner</h1>
+  <div id="qr-reader"></div>
+  <div id="result"></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/instascan/1.0.0/instascan.min.js"></script>
-    <script>
-        const videoElement = document.getElementById('qr-video');
-        const qrResult = document.getElementById('qr-result');
+  <script src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
+  <script>
+    const videoElement = document.getElementById('qr-reader');
+    const resultElement = document.getElementById('result');
 
-        const scanner = new Instascan.Scanner({ video: videoElement });
+    // Khởi tạo Instascan Scanner
+    let scanner = new Instascan.Scanner({ video: videoElement });
 
-        scanner.addListener('scan', function (content) {
-            qrResult.textContent = 'Kết quả: ' + content;
-        });
+    scanner.addListener('scan', function (content) {
+      resultElement.textContent = 'QR Code Detected: ' + content;
+      // Xử lý mã QR code ở đây, ví dụ: mở URL, lưu trữ dữ liệu, vv.
+    });
 
-        Instascan.Camera.getCameras()
-            .then(function (cameras) {
-                if (cameras.length > 0) {
-                    scanner.start(cameras[0]);
-                } else {
-                    console.error('Không tìm thấy camera.');
-                }
-            })
-            .catch(function (error) {
-                console.error('Lỗi truy cập camera: ', error);
-            });
-    </script>
+    Instascan.Camera.getCameras()
+      .then(function (cameras) {
+        if (cameras.length > 0) {
+          scanner.start(cameras[0]);
+        } else {
+          console.error('Không tìm thấy camera trên thiết bị.');
+        }
+      })
+      .catch(function (error) {
+        console.error(error);
+      });
+  </script>
 </body>
 </html>
