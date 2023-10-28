@@ -18,6 +18,7 @@
     #qr-scanner {
       width: 100%;
       max-width: 400px;
+      display: none;
     }
 
     #result {
@@ -29,28 +30,43 @@
 <body>
   <h1>QR Code Scanner</h1>
   <video id="qr-scanner"></video>
+  <canvas id="qr-canvas" style="display: none;"></canvas>
   <div id="result"></div>
 
-  <script src="https://cdn.rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
+  <script src="https://cdn.rawgit.com/cozmo/jsQR/master/dist/jsQR.js"></script>
   <script>
     const videoElement = document.getElementById('qr-scanner');
     const resultElement = document.getElementById('result');
 
-    Instascan.Camera.getCameras()
-      .then(function (cameras) {
-        if (cameras.length > 0) {
-          const scanner = new Instascan.Scanner({ video: videoElement });
-          scanner.addListener('scan', function (content) {
-            resultElement.textContent = 'QR Code Detected: ' + content;
-          });
-          scanner.start(cameras[0]);
-        } else {
-          console.error('Không tìm thấy camera trên thiết bị.');
-        }
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+      .then(function (stream) {
+        videoElement.srcObject = stream;
+        videoElement.play();
       })
       .catch(function (error) {
-        console.error(error);
+        console.error('Lỗi truy cập camera: ' + error);
       });
+
+    videoElement.oncanplay = function () {
+      const canvasElement = document.getElementById('qr-canvas');
+      const canvasContext = canvasElement.getContext('2d');
+      canvasElement.width = videoElement.videoWidth;
+      canvasElement.height = videoElement.videoHeight;
+
+      const scanQRCode = () => {
+        canvasContext.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+        const imageData = canvasContext.getImageData(0, 0, canvasElement.width, canvasElement.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+        if (code) {
+          resultElement.textContent = 'QR Code Detected: ' + code.data;
+        }
+
+        requestAnimationFrame(scanQRCode);
+      };
+
+      scanQRCode();
+    };
   </script>
 </body>
 </html>
