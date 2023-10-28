@@ -5,48 +5,31 @@
 </head>
 <body>
     <h1>QR Code Scanner</h1>
-    <video id="qr-video" width="400" height="300" autoplay></video>
-    <canvas id="qr-canvas" width="400" height="300"></canvas>
+    <video id="qr-video"></video>
     <div id="qr-result">Kết quả: <span></span></div>
 
-    <script src="https://cdn.rawgit.com/cozmo/jsQR/master/dist/jsQR.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/instascan/1.0.0/instascan.min.js"></script>
     <script>
         const videoElement = document.getElementById('qr-video');
-        const canvasElement = document.getElementById('qr-canvas');
-        const canvas = canvasElement.getContext('2d');
         const qrResult = document.getElementById('qr-result');
 
-        function startCamera() {
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-                .then(function (stream) {
-                    videoElement.srcObject = stream;
-                })
-                .catch(function (error) {
-                    console.error('Lỗi truy cập camera: ', error);
-                });
-        }
+        const scanner = new Instascan.Scanner({ video: videoElement });
 
-        videoElement.onloadedmetadata = function (e) {
-            canvasElement.style.display = 'none';
-            startCamera();
-        };
+        scanner.addListener('scan', function (content) {
+            qrResult.textContent = 'Kết quả: ' + content;
+        });
 
-        function scanQRCode() {
-            canvasElement.width = videoElement.videoWidth;
-            canvasElement.height = videoElement.videoHeight;
-            canvas.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
-            const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
-            const code = jsQR(imageData.data, imageData.width, imageData.height);
-
-            if (code) {
-                qrResult.textContent = 'Kết quả: ' + code.data;
-            } else {
-                requestAnimationFrame(scanQRCode);
-            }
-        }
-
-        startCamera();
-        scanQRCode();
+        Instascan.Camera.getCameras()
+            .then(function (cameras) {
+                if (cameras.length > 0) {
+                    scanner.start(cameras[0]);
+                } else {
+                    console.error('Không tìm thấy camera.');
+                }
+            })
+            .catch(function (error) {
+                console.error('Lỗi truy cập camera: ', error);
+            });
     </script>
 </body>
 </html>
