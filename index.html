@@ -6,7 +6,7 @@
 </head>
 
 <body>
-    <h1>Đọc mã QR từ máy ảnh và kiểm tra tồn tại trong dữ liệu</h1>
+    <h1>Đọc mã QR từ camera sau và kiểm tra tồn tại trong dữ liệu</h1>
 
     <video id="qr-video" width="300" height="300" autoplay></video>
     <canvas id="qr-canvas" style="display: none;"></canvas>
@@ -21,7 +21,7 @@
         const data = `
     030097014557	04/02/2023
     0986136962	04/02/2023
-`.trim();
+    `.trim();
 
         const lines = data.split('\n');
         const dataArray = [];
@@ -35,7 +35,15 @@
         const canvas = document.getElementById('qr-canvas');
         const context = canvas.getContext('2d');
 
-        navigator.mediaDevices.getUserMedia({ video: true })
+        navigator.mediaDevices.enumerateDevices()
+            .then(function (devices) {
+                const rearCamera = devices.find(device => device.kind === 'videoinput' && device.label.includes('back'));
+                if (rearCamera) {
+                    return navigator.mediaDevices.getUserMedia({ video: { deviceId: rearCamera.deviceId } });
+                }
+                // Nếu không tìm thấy camera sau, sử dụng camera mặc định
+                return navigator.mediaDevices.getUserMedia({ video: true });
+            })
             .then(function (stream) {
                 video.srcObject = stream;
             })
@@ -54,7 +62,7 @@
                     const code = jsQR(imageData.data, imageData.width, imageData.height);
 
                     if (code) {
-                        const phoneNumber = code.data.trim().substring(0, 12); // Lấy 9 ký tự đầu tiên
+                        const phoneNumber = code.data.trim().substring(0, 12);
                         console.log('Mã QR được tìm thấy:', phoneNumber);
                         checkPhoneNumber(phoneNumber);
                     }
