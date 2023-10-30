@@ -1,36 +1,46 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Đọc QR Code</title>
-    <!-- Bao gồm thư viện html5-qrcode -->
-    <script src="https://cdn.rawgit.com/mebjas/html5-qrcode/v1.2.0/dist/html5-qrcode.min.js"></script>
+    <title>Đọc mã QR từ máy ảnh</title>
 </head>
 <body>
-    <h1>Đọc QR Code</h1>
-    <div id="reader"></div>
+    <h1>Đọc mã QR từ máy ảnh</h1>
 
+    <video id="qr-video" width="300" height="300" autoplay></video>
+    <canvas id="qr-canvas" style="display: none;"></canvas>
+
+    <script src="https://rawgit.com/cozmo/jsQR/master/dist/jsQR.js"></script>
     <script>
-        const html5QrCode = new Html5Qrcode("reader");
+        const video = document.getElementById('qr-video');
+        const canvas = document.getElementById('qr-canvas');
+        const context = canvas.getContext('2d');
 
-        // Xử lý khi quét thành công
-        function onScanSuccess(qrCodeMessage) {
-            console.log(`QR Code được quét thành công: ${qrCodeMessage}`);
-            // Thực hiện xử lý dữ liệu QR code ở đây
-        }
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function (stream) {
+                video.srcObject = stream;
+            })
+            .catch(function (error) {
+                console.error('Lỗi khi truy cập máy ảnh:', error);
+            });
 
-        // Bắt đầu quét khi trang web đã tải
-        html5QrCode.start().then(() => {
-            console.log("Đã bắt đầu quét QR code.");
-        }).catch((error) => {
-            console.log(error);
+        video.addEventListener('play', function () {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            (function loop() {
+                if (!video.paused && !video.ended) {
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                    const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+                    if (code) {
+                        console.log('Mã QR được tìm thấy:', code.data);
+                        // Thực hiện xử lý với mã QR ở đây
+                    }
+                }
+                requestAnimationFrame(loop);
+            })();
         });
-
-        // Ngừng quét khi cần thiết
-        // html5QrCode.stop().then((ignore) => {
-        //     console.log("Ngừng quét QR code.");
-        // }).catch((error) => {
-        //     console.log(error);
-        // });
     </script>
 </body>
 </html>
