@@ -6,7 +6,7 @@
 </head>
 
 <body>
-    <h1>Đọc mã QR từ camera sau và kiểm tra tồn tại trong dữ liệu</h1>
+    <h1>Đọc mã QR từ camera và kiểm tra tồn tại trong dữ liệu</h1>
 
     <video id="qr-video" width="300" height="300" autoplay></video>
     <canvas id="qr-canvas" style="display: none;"></canvas>
@@ -35,15 +35,7 @@
         const canvas = document.getElementById('qr-canvas');
         const context = canvas.getContext('2d');
 
-        navigator.mediaDevices.enumerateDevices()
-            .then(function (devices) {
-                const frontCamera = devices.find(device => device.kind === 'videoinput' && device.label.includes('front'));
-                if (frontCamera) {
-                    return navigator.mediaDevices.getUserMedia({ video: { deviceId: frontCamera.deviceId } });
-                }
-                // Nếu không tìm thấy camera trước, sử dụng camera mặc định
-                return navigator.mediaDevices.getUserMedia({ video: true });
-            })
+        navigator.mediaDevices.getUserMedia({ video: true })
             .then(function (stream) {
                 video.srcObject = stream;
             })
