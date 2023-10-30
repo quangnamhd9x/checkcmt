@@ -1,16 +1,36 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Đọc mã QR từ máy ảnh</title>
 </head>
+
 <body>
-    <h1>Đọc mã QR từ máy ảnh</h1>
+    <h1>Đọc mã QR từ máy ảnh và kiểm tra tồn tại trong dữ liệu</h1>
 
     <video id="qr-video" width="300" height="300" autoplay></video>
     <canvas id="qr-canvas" style="display: none;"></canvas>
 
+    <div>
+        <p>Nhập số điện thoại để kiểm tra:</p>
+        <input type="text" id="phoneNumberInput" placeholder="Nhập số điện thoại và nhấn Enter">
+    </div>
+
     <script src="https://rawgit.com/cozmo/jsQR/master/dist/jsQR.js"></script>
     <script>
+        const data = `
+    030097014557	04/02/2023
+    0986136962	04/02/2023
+`.trim();
+
+        const lines = data.split('\n');
+        const dataArray = [];
+
+        lines.forEach(line => {
+            const [phone, datetime] = line.split('\t');
+            dataArray.push({ phone, datetime });
+        });
+
         const video = document.getElementById('qr-video');
         const canvas = document.getElementById('qr-canvas');
         const context = canvas.getContext('2d');
@@ -34,13 +54,33 @@
                     const code = jsQR(imageData.data, imageData.width, imageData.height);
 
                     if (code) {
-                        console.log('Mã QR được tìm thấy:', code.data);
-                        // Thực hiện xử lý với mã QR ở đây
+                        const phoneNumber = code.data.trim().substring(0, 12); // Lấy 9 ký tự đầu tiên
+                        console.log('Mã QR được tìm thấy:', phoneNumber);
+                        checkPhoneNumber(phoneNumber);
                     }
                 }
                 requestAnimationFrame(loop);
             })();
         });
+
+        const phoneNumberInput = document.getElementById("phoneNumberInput");
+
+        phoneNumberInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                checkPhoneNumber(phoneNumberInput.value);
+            }
+        });
+
+        function checkPhoneNumber(phoneNumber) {
+            const foundEntry = dataArray.find(entry => entry.phone === phoneNumber);
+
+            if (foundEntry) {
+                alert(`❌ Đã SU Ngày: ${foundEntry.datetime} ... 😭`);
+            } else {
+                alert("😍 Chưa SU!! 😍");
+            }
+        }
     </script>
 </body>
+
 </html>
