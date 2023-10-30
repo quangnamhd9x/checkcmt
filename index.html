@@ -35,38 +35,21 @@
         const canvas = document.getElementById('qr-canvas');
         const context = canvas.getContext('2d');
 
-        function startCamera(deviceId) {
-            const constraints = {
-                video: {
-                    facingMode: 'environment',
-                    deviceId: deviceId
+        navigator.mediaDevices.enumerateDevices()
+            .then(function (devices) {
+                const frontCamera = devices.find(device => device.kind === 'videoinput' && device.label.includes('front'));
+                if (frontCamera) {
+                    return navigator.mediaDevices.getUserMedia({ video: { deviceId: frontCamera.deviceId } });
                 }
-            };
-
-            navigator.mediaDevices.getUserMedia(constraints)
-                .then(function (stream) {
-                    video.srcObject = stream;
-                })
-                .catch(function (error) {
-                    console.error('Lỗi khi truy cập máy ảnh:', error);
-                });
-        }
-
-        function initCamera() {
-            navigator.mediaDevices.enumerateDevices()
-                .then(function (devices) {
-                    const rearCamera = devices.find(device => device.kind === 'videoinput' && device.label.includes('back'));
-
-                    if (rearCamera) {
-                        startCamera(rearCamera.deviceId);
-                    } else {
-                        // Nếu không tìm thấy camera sau, lựa chọn camera mặc định
-                        startCamera(null);
-                    }
-                });
-        }
-
-        initCamera();
+                // Nếu không tìm thấy camera trước, sử dụng camera mặc định
+                return navigator.mediaDevices.getUserMedia({ video: true });
+            })
+            .then(function (stream) {
+                video.srcObject = stream;
+            })
+            .catch(function (error) {
+                console.error('Lỗi khi truy cập máy ảnh:', error);
+            });
 
         video.addEventListener('play', function () {
             canvas.width = video.videoWidth;
@@ -74,7 +57,7 @@
 
             (function loop() {
                 if (!video.paused && !video.ended) {
-                    context.drawImage(video, 0, 0, canvas.width, canvas height;
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
                     const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
                     const code = jsQR(imageData.data, imageData.width, imageData.height);
 
