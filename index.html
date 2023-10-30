@@ -1,59 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Truy cập Camera HTML</title>
-    <style>
-        #camera-viewport {
-            width: 640px;
-            height: 480px;
-            border: 1px solid #000;
-        }
-    </style>
+    <title>Truy cập Camera Điện Thoại</title>
 </head>
 <body>
+    <video id="camera-view" autoplay></video>
     <button id="start-camera">Bật camera</button>
-    <div id="camera-container" style="display: none;">
-        <video id="camera-view" autoplay></video>
-        <canvas id="camera-viewport"></canvas>
-        <button id="close-camera">Đóng camera</button>
-    </div>
+
     <script>
-        const startButton = document.getElementById('start-camera');
-        const closeCameraButton = document.getElementById('close-camera');
-        const cameraContainer = document.getElementById('camera-container');
         const video = document.getElementById('camera-view');
-        const canvas = document.getElementById('camera-viewport');
-        const ctx = canvas.getContext('2d');
+        const startButton = document.getElementById('start-camera');
 
-        startButton.addEventListener('click', () => {
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(function (stream) {
-                    video.srcObject = stream;
-                    cameraContainer.style.display = 'block';
-                })
-                .catch(function (error) {
-                    console.error('Không thể truy cập camera: ', error);
-                });
-        });
-
-        closeCameraButton.addEventListener('click', () => {
-            const stream = video.srcObject;
-            if (stream) {
-                const tracks = stream.getTracks();
-                tracks.forEach(track => track.stop());
+        startButton.addEventListener('click', function () {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(function (stream) {
+                        video.srcObject = stream;
+                    })
+                    .catch(function (error) {
+                        console.error('Không thể truy cập camera: ', error);
+                    });
+            } else {
+                console.error('Trình duyệt không hỗ trợ API getUserMedia');
             }
-            cameraContainer.style.display = 'none';
-        });
-
-        // Vẽ hình ảnh từ camera lên canvas
-        video.addEventListener('play', function () {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            (function drawFrame() {
-                if (video.paused || video.ended) return;
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                requestAnimationFrame(drawFrame);
-            })();
         });
     </script>
 </body>
