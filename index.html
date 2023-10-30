@@ -1,56 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>QR Code Scanner</title>
-  <style>
-    body {
-      text-align: center;
-      background-color: #f0f0f0;
-      font-family: Arial, sans-serif;
-    }
-
-    #qr-reader {
-      width: 100%;
-      max-width: 400px;
-      margin: 0 auto;
-    }
-
-    #result {
-      margin-top: 20px;
-      font-size: 18px;
-    }
-  </style>
+    <title>Truy cập Camera HTML</title>
 </head>
 <body>
-  <h1>QR Code Scanner</h1>
-  <div id="qr-reader"></div>
-  <div id="result"></div>
+    <video id="camera-view" autoplay></video>
+    <script>
+        // Lấy đối tượng video
+        const video = document.getElementById('camera-view');
 
-  <script src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
-  <script>
-    const videoElement = document.getElementById('qr-reader');
-    const resultElement = document.getElementById('result');
-
-    // Khởi tạo Instascan Scanner
-    let scanner = new Instascan.Scanner({ video: videoElement });
-
-    scanner.addListener('scan', function (content) {
-      resultElement.textContent = 'QR Code Detected: ' + content;
-      // Xử lý mã QR code ở đây, ví dụ: mở URL, lưu trữ dữ liệu, vv.
-    });
-
-    Instascan.Camera.getCameras()
-      .then(function (cameras) {
-        if (cameras.length > 0) {
-          scanner.start(cameras[0]);
+        // Thử truy cập camera
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function (stream) {
+                // Thiết lập luồng từ camera vào đối tượng video
+                video.srcObject = stream;
+            })
+            .catch(function (error) {
+                console.error('Không thể truy cập camera: ', error);
+            });
         } else {
-          console.error('Không tìm thấy camera trên thiết bị.');
+            console.error('Trình duyệt không hỗ trợ API getUserMedia');
         }
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
-  </script>
+    </script>
 </body>
 </html>
