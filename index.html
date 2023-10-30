@@ -1,40 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Truy cập Camera Điện Thoại</title>
+    <title>Chuyển giữa Camera Trước và Camera Sau</title>
 </head>
 <body>
     <video id="camera-view" autoplay playsinline></video>
-    <button id="start-camera">Bật camera</button>
-    <button id="stop-camera">Tắt camera</button>
+    <button id="switch-camera">Chuyển Camera</button>
 
     <script>
         const video = document.getElementById('camera-view');
-        const startButton = document.getElementById('start-camera');
-        const stopButton = document.getElementById('stop-camera');
+        const switchButton = document.getElementById('switch-camera');
         let stream;
 
-        startButton.addEventListener('click', function () {
-            if (!stream) {
-                navigator.mediaDevices.getUserMedia({ video: true })
-                    .then(function (cameraStream) {
-                        video.srcObject = cameraStream;
-                        stream = cameraStream;
-                    })
-                    .catch(function (error) {
-                        console.error('Không thể truy cập camera: ', error);
-                    });
-            }
-        });
-
-        stopButton.addEventListener('click', function () {
+        switchButton.addEventListener('click', function () {
             if (stream) {
                 const tracks = stream.getTracks();
                 tracks.forEach(track => track.stop());
                 video.srcObject = null;
                 stream = null;
             }
+
+            // Chuyển giữa camera trước và camera sau
+            const constraints = {
+                video: { facingMode: (getFacingMode() === 'user') ? 'environment' : 'user' }
+            };
+
+            navigator.mediaDevices.getUserMedia(constraints)
+                .then(function (cameraStream) {
+                    video.srcObject = cameraStream;
+                    stream = cameraStream;
+                })
+                .catch(function (error) {
+                    console.error('Không thể truy cập camera: ', error);
+                });
         });
+
+        // Hàm để lấy chế độ hiện tại của camera (user hoặc environment)
+        function getFacingMode() {
+            if (stream && stream.getVideoTracks().length > 0) {
+                const track = stream.getVideoTracks()[0];
+                const settings = track.getSettings();
+                return settings.facingMode;
+            }
+            return 'user'; // Mặc định hiển thị camera trước
+        }
     </script>
 </body>
 </html>
