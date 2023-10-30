@@ -35,21 +35,17 @@
         const canvas = document.getElementById('qr-canvas');
         const context = canvas.getContext('2d');
 
-        navigator.mediaDevices.enumerateDevices()
-            .then(function (devices) {
-                const rearCamera = devices.find(device => device.kind === 'videoinput' && device.label.includes('back'));
-                if (rearCamera) {
-                    return navigator.mediaDevices.getUserMedia({ video: { deviceId: rearCamera.deviceId } });
-                }
-                // Nếu không tìm thấy camera sau, sử dụng camera mặc định
-                return navigator.mediaDevices.getUserMedia({ video: true });
-            })
-            .then(function (stream) {
-                video.srcObject = stream;
-            })
-            .catch(function (error) {
-                console.error('Lỗi khi truy cập máy ảnh:', error);
-            });
+        function startCamera() {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }) // Lấy camera sau
+                .then(function (stream) {
+                    video.srcObject = stream;
+                })
+                .catch(function (error) {
+                    console.error('Lỗi khi truy cập máy ảnh:', error);
+                });
+        }
+
+        startCamera();
 
         video.addEventListener('play', function () {
             canvas.width = video.videoWidth;
