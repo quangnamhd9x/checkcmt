@@ -4,24 +4,35 @@
     <title>Truy cập Camera Điện Thoại</title>
 </head>
 <body>
-    <video id="camera-view" autoplay></video>
+    <video id="camera-view" autoplay playsinline></video>
     <button id="start-camera">Bật camera</button>
+    <button id="stop-camera">Tắt camera</button>
 
     <script>
         const video = document.getElementById('camera-view');
         const startButton = document.getElementById('start-camera');
+        const stopButton = document.getElementById('stop-camera');
+        let stream;
 
         startButton.addEventListener('click', function () {
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            if (!stream) {
                 navigator.mediaDevices.getUserMedia({ video: true })
-                    .then(function (stream) {
-                        video.srcObject = stream;
+                    .then(function (cameraStream) {
+                        video.srcObject = cameraStream;
+                        stream = cameraStream;
                     })
                     .catch(function (error) {
                         console.error('Không thể truy cập camera: ', error);
                     });
-            } else {
-                console.error('Trình duyệt không hỗ trợ API getUserMedia');
+            }
+        });
+
+        stopButton.addEventListener('click', function () {
+            if (stream) {
+                const tracks = stream.getTracks();
+                tracks.forEach(track => track.stop());
+                video.srcObject = null;
+                stream = null;
             }
         });
     </script>
