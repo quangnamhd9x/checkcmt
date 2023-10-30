@@ -2,26 +2,46 @@
 <html>
 <head>
     <title>Truy cập Camera HTML</title>
+    <style>
+        #camera-view {
+            width: 100%;
+            max-width: 640px;
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
 </head>
 <body>
-    <video id="camera-view" autoplay></video>
+    <button id="start-camera">Bật camera</button>
+    <div id="camera-modal" style="display: none;">
+        <video id="camera-view" autoplay></video>
+        <button id="close-camera">Đóng camera</button>
+    </div>
     <script>
-        // Lấy đối tượng video
+        const startButton = document.getElementById('start-camera');
+        const closeCameraButton = document.getElementById('close-camera');
+        const cameraModal = document.getElementById('camera-modal');
         const video = document.getElementById('camera-view');
 
-        // Thử truy cập camera
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        startButton.addEventListener('click', () => {
             navigator.mediaDevices.getUserMedia({ video: true })
-            .then(function (stream) {
-                // Thiết lập luồng từ camera vào đối tượng video
-                video.srcObject = stream;
-            })
-            .catch(function (error) {
-                console.error('Không thể truy cập camera: ', error);
-            });
-        } else {
-            console.error('Trình duyệt không hỗ trợ API getUserMedia');
-        }
+                .then(function (stream) {
+                    video.srcObject = stream;
+                    cameraModal.style.display = 'block';
+                })
+                .catch(function (error) {
+                    console.error('Không thể truy cập camera: ', error);
+                });
+        });
+
+        closeCameraButton.addEventListener('click', () => {
+            const stream = video.srcObject;
+            if (stream) {
+                const tracks = stream.getTracks();
+                tracks.forEach(track => track.stop());
+            }
+            cameraModal.style.display = 'none';
+        });
     </script>
 </body>
 </html>
