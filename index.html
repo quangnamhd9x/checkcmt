@@ -1,3 +1,6 @@
+Dưới đây là phiên bản cập nhật của mã HTML và JavaScript để hiển thị kết quả đầy đủ phía bên dưới sau khi quét mã QR:
+
+```html
 <!DOCTYPE html>
 <html>
 <head>
@@ -14,12 +17,16 @@
         <input type="text" id="phoneNumberInput" placeholder="Nhập số điện thoại và nhấn Enter">
     </div>
 
+    <div id="result">
+        <p id="resultText"></p>
+    </div>
+
     <script src="https://rawgit.com/cozmo/jsQR/master/dist/jsQR.js"></script>
     <script>
         const data = `
-    030097014557	04/02/2023
-    0986136962	04/02/2023
-    `.trim();
+            030097014557    04/02/2023
+            0986136962      04/02/2023
+        `.trim();
 
         const lines = data.split('\n');
         const dataArray = [];
@@ -33,7 +40,7 @@
         const canvas = document.getElementById('qr-canvas');
         const context = canvas.getContext('2d');
 
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }) // Sử dụng camera sau mặc định
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
             .then(function (stream) {
                 video.srcObject = stream;
             })
@@ -62,6 +69,7 @@
         });
 
         const phoneNumberInput = document.getElementById("phoneNumberInput");
+        const resultText = document.getElementById("resultText");
 
         phoneNumberInput.addEventListener("keydown", (event) => {
             if (event.key === "Enter") {
@@ -73,11 +81,14 @@
             const foundEntry = dataArray.find(entry => entry.phone === phoneNumber);
 
             if (foundEntry) {
-                alert(`❌ Đã SU Ngày: ${foundEntry.datetime} ... 😭`);
+                resultText.textContent = `❌ Đã SU Ngày: ${foundEntry.datetime} ... 😭`;
             } else {
-                alert("😍 Chưa SU!! 😍");
+                resultText.textContent = "😍 Chưa SU!! 😍";
             }
         }
     </script>
 </body>
 </html>
+```
+
+Mã HTML và JavaScript trên đã thêm một phần tử div để hiển thị kết quả (`<div id="result">`) và sử dụng JavaScript để cập nhật nội dung của nó khi kết quả được tìm thấy.
